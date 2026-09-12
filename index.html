@@ -43,7 +43,7 @@ button{border:0;background:var(--gold);color:#211c10;font-weight:800;margin-top:
 
 <section class="hidden" id="result">
 <div class="card">
-<div class="rarity">ORIGIN · 本命卡</div><div class="icon" id="icon">✦</div>
+<div class="rarity">ORIGIN · 本命卡</div><div style="margin:14px auto 10px;max-width:250px"><svg id="avatar" viewBox="0 0 240 300" style="width:100%;height:auto;display:block"><defs><linearGradient id="bgGrad"><stop id="bg1" offset="0"/><stop id="bg2" offset="1"/></linearGradient></defs><rect x="4" y="4" width="232" height="292" rx="24" fill="url(#bgGrad)" stroke="#6e6042"/><circle cx="120" cy="116" r="48" id="hairBack"/><path id="bodyShape" d="M58 280 Q62 198 120 190 Q178 198 182 280Z"/><ellipse cx="120" cy="121" rx="37" ry="44" id="faceShape"/><path id="hairFront" d="M83 119 Q82 72 120 70 Q159 72 157 119 Q145 94 124 92 Q101 94 83 119Z"/><ellipse cx="106" cy="123" rx="4" ry="3" id="eyeL"/><ellipse cx="134" cy="123" rx="4" ry="3" id="eyeR"/><path d="M113 145 Q120 150 127 145" fill="none" stroke="#7d5555" stroke-width="2"/><path id="robeLine" d="M91 204 L120 239 L149 204" fill="none" stroke-width="5"/><circle cx="120" cy="218" r="9" id="sigil"/><text x="120" y="270" text-anchor="middle" id="avatarGlyph" font-size="26" font-weight="700"></text></svg></div><div class="icon" id="icon" style="font-size:34px;margin:4px">✦</div>
 <h2 id="name"></h2><div class="subtitle" id="title"></div>
 <div class="chips"><span class="chip" id="zodiac"></span><span class="chip" id="yin"></span><span class="chip" id="season"></span></div>
 <div class="pillars">
@@ -69,8 +69,8 @@ button{border:0;background:var(--gold);color:#211c10;font-weight:800;margin-top:
 <button type="button" class="secondary choice" data-v="休">放鬆一下</button>
 </div>
 <div id="awakenBox" class="hidden">
-<div class="dna"><b>✦ 初次覺醒完成</b><br><span id="awakenText">你的角色已準備好進入人物顯形階段。</span></div>
-<p class="note">下一階段接入 AI 人物生成後，這裡會直接解鎖你的完整 2D 本命人物，而不是繼續空按升級。</p>
+<div class="dna"><b>✦ 初次覺醒完成</b><br><span id="awakenText">你的本命角色已完成 2D 初次顯形。</span></div>
+<p class="note">目前先用角色 DNA 在手機端生成固定 2D 化身；之後可升級為 AI 精緻人物卡面。</p>
 </div>
 <button class="secondary" type="button" id="reset">重新測試</button>
 </section>
@@ -106,7 +106,7 @@ function zodiac(m,d){
  if(md<=1122)return ['天蠍座','♏'];
  return ['射手座','♐'];
 }
-function hash(s){let h=2166136261>>>0;for(let c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function avatarPalette(el){return {木:['#243c32','#5d8b68','#d9c4ad','#182a22','#9cc6a3'],火:['#4b2626','#a6503f','#dfc1aa','#2b1717','#e3a14b'],土:['#45392d','#8c7458','#d8bfa7','#29231d','#c6a16b'],金:['#2d3037','#7d8797','#dec7b4','#17191e','#c8d0dd'],水:['#202d45','#4d6f99','#d9c1b0','#131b2b','#84a8cf']}[el]}function paintAvatar(el,rd,stem){let p=avatarPalette(el);bg1.setAttribute('stop-color',p[0]);bg2.setAttribute('stop-color','#15131c');hairBack.setAttribute('fill',p[3]);hairFront.setAttribute('fill',p[3]);faceShape.setAttribute('fill',p[2]);bodyShape.setAttribute('fill',p[1]);eyeL.setAttribute('fill',p[4]);eyeR.setAttribute('fill',p[4]);robeLine.setAttribute('stroke',p[4]);sigil.setAttribute('fill',p[4]);avatarGlyph.setAttribute('fill',p[4]);avatarGlyph.textContent=stem;let n=parseInt(rd.seed.slice(-4),16);faceShape.setAttribute('rx',35+n%5);hairBack.setAttribute('r',rd.hair.includes('短')?'43':'51')}function hash(s){let h=2166136261>>>0;for(let c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
 function pick(a,h,n){return a[(h>>>n)%a.length]}
 function dna(h,el,z){let hair=['長髮','及肩髮','俐落短髮','高束髮','半束長髮'],eyes=['清冷','沉靜','明亮','銳利','溫柔'],temper=['沉著','敏銳','溫和','果決','內斂','靈動'],dress=['輕甲','長袍','束袖勁裝','層疊法衣','簡潔戰裝'];return {hair:pick(hair,h,1),eye:pick(eyes,h,5),temper:pick(temper,h,9),dress:pick(dress,h,13),seed:h.toString(16).toUpperCase().padStart(8,'0'),z}}
 function counts(ps){let c={木:0,火:0,土:0,金:0,水:0};ps.forEach(p=>{c[SE[p.si]]++;c[BE[p.bi]]++});return c}
