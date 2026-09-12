@@ -76,7 +76,21 @@ function monthIndex(m,d){let starts=solarStarts, idx=m-1;if(d<starts[idx][1])idx
 function monthP(y,m,d,ysi){let idx=monthIndex(m,d);let branch=(idx+1)%12; // Jan Xiaohan=>Chou, Feb Lichun=>Yin
 let tigerStem=((ysi%5)*2+2)%10;let offset=(branch-2+12)%12;let si=(tigerStem+offset)%10;return {si,bi:branch,text:S[si]+B[branch]}}
 function hourP(dayStem,hname){let bi=B.indexOf(hname[0]);let ziStem=(dayStem%5)*2%10,si=(ziStem+bi)%10;return {si,bi,text:S[si]+B[bi]}}
-function zodiac(m,d){let a=[['摩羯座','♑',1,20],['水瓶座','♒',2,19],['雙魚座','♓',3,21],['牡羊座','♈',4,20],['金牛座','♉',5,21],['雙子座','♊',6,22],['巨蟹座','♋',7,23],['獅子座','♌',8,23],['處女座','♍',9,23],['天秤座','♎',10,24],['天蠍座','♏',11,23],['射手座','♐',12,22]];for(let i=0;i<a.length;i++){let next=a[(i+1)%12],nm=next[2],nd=next[3];if((m===a[i][2]&&d>=a[i][3])||(m===nm&&d<nd))return a[i]}return a[11]}
+function zodiac(m,d){
+ const md=m*100+d;
+ if(md>=1222||md<=119)return ['摩羯座','♑'];
+ if(md<=218)return ['水瓶座','♒'];
+ if(md<=320)return ['雙魚座','♓'];
+ if(md<=419)return ['牡羊座','♈'];
+ if(md<=520)return ['金牛座','♉'];
+ if(md<=621)return ['雙子座','♊'];
+ if(md<=722)return ['巨蟹座','♋'];
+ if(md<=822)return ['獅子座','♌'];
+ if(md<=922)return ['處女座','♍'];
+ if(md<=1023)return ['天秤座','♎'];
+ if(md<=1122)return ['天蠍座','♏'];
+ return ['射手座','♐'];
+}
 function hash(s){let h=2166136261>>>0;for(let c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
 function pick(a,h,n){return a[(h>>>n)%a.length]}
 function dna(h,el,z){let hair=['長髮','及肩髮','俐落短髮','高束髮','半束長髮'],eyes=['清冷','沉靜','明亮','銳利','溫柔'],temper=['沉著','敏銳','溫和','果決','內斂','靈動'],dress=['輕甲','長袍','束袖勁裝','層疊法衣','簡潔戰裝'];return {hair:pick(hair,h,1),eye:pick(eyes,h,5),temper:pick(temper,h,9),dress:pick(dress,h,13),seed:h.toString(16).toUpperCase().padStart(8,'0'),z}}
