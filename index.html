@@ -43,7 +43,11 @@ button{border:0;background:var(--gold);color:#211c10;font-weight:800;margin-top:
 
 <section class="hidden" id="result">
 <div class="card">
-<div class="rarity">ORIGIN · 本命卡</div><div style="margin:14px auto 10px;max-width:250px"><svg id="avatar" viewBox="0 0 240 300" style="width:100%;height:auto;display:block"><defs><linearGradient id="bgGrad"><stop id="bg1" offset="0"/><stop id="bg2" offset="1"/></linearGradient></defs><rect x="4" y="4" width="232" height="292" rx="24" fill="url(#bgGrad)" stroke="#6e6042"/><circle cx="120" cy="116" r="48" id="hairBack"/><path id="bodyShape" d="M58 280 Q62 198 120 190 Q178 198 182 280Z"/><ellipse cx="120" cy="121" rx="37" ry="44" id="faceShape"/><path id="hairFront" d="M83 119 Q82 72 120 70 Q159 72 157 119 Q145 94 124 92 Q101 94 83 119Z"/><ellipse cx="106" cy="123" rx="4" ry="3" id="eyeL"/><ellipse cx="134" cy="123" rx="4" ry="3" id="eyeR"/><path d="M113 145 Q120 150 127 145" fill="none" stroke="#7d5555" stroke-width="2"/><path id="robeLine" d="M91 204 L120 239 L149 204" fill="none" stroke-width="5"/><circle cx="120" cy="218" r="9" id="sigil"/><text x="120" y="270" text-anchor="middle" id="avatarGlyph" font-size="26" font-weight="700"></text></svg></div><div class="icon" id="icon" style="font-size:34px;margin:4px">✦</div>
+<div class="rarity">ORIGIN · 本命卡</div>
+<div id="roleVisual" style="margin:14px auto 12px;max-width:290px;border:1px solid #6e6042;border-radius:20px;background:linear-gradient(145deg,#25212c,#121017);min-height:310px;display:grid;place-items:center;padding:18px">
+<div id="rolePlaceholder"><div id="roleMark" style="font-size:74px">✦</div><div id="roleType" style="font-size:20px;font-weight:900;color:var(--gold);margin-top:8px"></div><div id="roleSex" class="note"></div><div class="note" style="margin-top:16px">正式角色立繪位置</div></div>
+<img id="roleImg" class="hidden" alt="本命角色立繪" style="width:100%;height:auto;border-radius:14px">
+</div><div class="icon" id="icon" style="font-size:34px;margin:4px">✦</div>
 <h2 id="name"></h2><div class="subtitle" id="title"></div>
 <div class="chips"><span class="chip" id="zodiac"></span><span class="chip" id="yin"></span><span class="chip" id="season"></span></div>
 <div class="pillars">
@@ -69,8 +73,8 @@ button{border:0;background:var(--gold);color:#211c10;font-weight:800;margin-top:
 <button type="button" class="secondary choice" data-v="休">放鬆一下</button>
 </div>
 <div id="awakenBox" class="hidden">
-<div class="dna"><b>✦ 初次覺醒完成</b><br><span id="awakenText">你的本命角色已完成 2D 初次顯形。</span></div>
-<p class="note">目前先用角色 DNA 在手機端生成固定 2D 化身；之後可升級為 AI 精緻人物卡面。</p>
+<div class="dna"><b>✦ 初次覺醒完成</b><br><span id="awakenText">你的本命角色已完成初次覺醒。</span></div>
+<p class="note">已依日主陰陽五行與性別配對角色原型；正式立繪加入後會直接顯示對應人物。</p>
 </div>
 <button class="secondary" type="button" id="reset">重新測試</button>
 </section>
@@ -106,8 +110,11 @@ function zodiac(m,d){
  if(md<=1122)return ['天蠍座','♏'];
  return ['射手座','♐'];
 }
-function avatarPalette(el){return {木:['#243c32','#5d8b68','#d9c4ad','#182a22','#9cc6a3'],火:['#4b2626','#a6503f','#dfc1aa','#2b1717','#e3a14b'],土:['#45392d','#8c7458','#d8bfa7','#29231d','#c6a16b'],金:['#2d3037','#7d8797','#dec7b4','#17191e','#c8d0dd'],水:['#202d45','#4d6f99','#d9c1b0','#131b2b','#84a8cf']}[el]}function paintAvatar(el,rd,stem){let p=avatarPalette(el);bg1.setAttribute('stop-color',p[0]);bg2.setAttribute('stop-color','#15131c');hairBack.setAttribute('fill',p[3]);hairFront.setAttribute('fill',p[3]);faceShape.setAttribute('fill',p[2]);bodyShape.setAttribute('fill',p[1]);eyeL.setAttribute('fill',p[4]);eyeR.setAttribute('fill',p[4]);robeLine.setAttribute('stroke',p[4]);sigil.setAttribute('fill',p[4]);avatarGlyph.setAttribute('fill',p[4]);avatarGlyph.textContent=stem;let n=parseInt(rd.seed.slice(-4),16);faceShape.setAttribute('rx',35+n%5);hairBack.setAttribute('r',rd.hair.includes('短')?'43':'51')}function hash(s){let h=2166136261>>>0;for(let c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function hash(s){let h=2166136261>>>0;for(let c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
 function pick(a,h,n){return a[(h>>>n)%a.length]}
+const ROLE_STYLE={'陽金':['⚔️','庚金・鋒刃','冷冽英氣・銀黑金・劍與鷹'],'陰金':['💎','辛金・珠玉','清貴精緻・象牙金・珠玉精工'],'陽木':['🌲','甲木・蒼林','挺拔爽朗・森林守護'],'陰木':['🌿','乙木・靈藤','柔韌靈秀・花藤仙氣'],'陽火':['☀️','丙火・曜炎','張揚熱烈・赤金戰意'],'陰火':['🕯️','丁火・燭華','細膩艷麗・蝶火燭光'],'陽土':['⛰️','戊土・鎮岳','沉穩可靠・山岳守護'],'陰土':['🏞️','己土・沃野','溫潤包容・大地療癒'],'陽水':['🌊','壬水・滄瀾','自由瀟灑・海浪與風'],'陰水':['🌙','癸水・玄露','安靜深邃・月夜水鏡']};
+const ROLE_IMAGES={};
+function showRole(type,gender){let r=ROLE_STYLE[type],url=ROLE_IMAGES[type+'|'+gender];roleMark.textContent=r[0];roleType.textContent=r[1];roleSex.textContent=(gender==='不指定'?'中性':gender)+'版｜'+r[2];if(url){roleImg.src=url;roleImg.classList.remove('hidden');rolePlaceholder.classList.add('hidden')}else{roleImg.classList.add('hidden');rolePlaceholder.classList.remove('hidden')}}
 function dna(h,el,z){let hair=['長髮','及肩髮','俐落短髮','高束髮','半束長髮'],eyes=['清冷','沉靜','明亮','銳利','溫柔'],temper=['沉著','敏銳','溫和','果決','內斂','靈動'],dress=['輕甲','長袍','束袖勁裝','層疊法衣','簡潔戰裝'];return {hair:pick(hair,h,1),eye:pick(eyes,h,5),temper:pick(temper,h,9),dress:pick(dress,h,13),seed:h.toString(16).toUpperCase().padStart(8,'0'),z}}
 function counts(ps){let c={木:0,火:0,土:0,金:0,水:0};ps.forEach(p=>{c[SE[p.si]]++;c[BE[p.bi]]++});return c}
 function seasonName(m,d){let i=monthIndex(m,d);return ['寒土','初春','仲春','暮春','初夏','仲夏','暮夏','初秋','仲秋','暮秋','初冬','仲冬'][i]}
@@ -128,7 +135,7 @@ document.querySelector('#f').addEventListener('submit',e=>{e.preventDefault();le
 formPanel.classList.add('hidden');reveal.classList.remove('hidden');setTimeout(()=>{orb.textContent=I[el][0];revealTxt.textContent=`本命 ${yn}${el} · 四柱形成`},550);
 setTimeout(()=>{reveal.classList.add('hidden');result.classList.remove('hidden');icon.textContent=I[el][0];name.textContent=`${S[D.si]}${el}・本命化身`;title.textContent=I[el][1];zodiac.textContent=`${z[1]} ${z[0]}`;yin.textContent=`${yn}${el}`;season.textContent=seasonName(m,d);yp.textContent=Y.text;mp.textContent=M.text;dp.textContent=D.text;hp.textContent=H.text;
 let total=8;five.innerHTML=['木','火','土','金','水'].map(k=>{let pct=Math.round(c[k]/total*100);return `<div class="stat"><span>${k}</span><div class="bar"><div class="fill" style="width:${pct}%"></div></div><span>${pct}%</span></div>`}).join('');
-let top=Object.entries(c).sort((a,b)=>b[1]-a[1])[0][0];dnaText.innerHTML=`本命核心：${yn}${el}<br>表層五行偏向：${top}<br>角色氣質：${rd.temper}<br>髮型：${rd.hair}<br>視線氣質：${rd.eye}<br>服裝原型：${rd.dress}<br>星象：${rd.z}<br>角色種子：${rd.seed}`;
+let top=Object.entries(c).sort((a,b)=>b[1]-a[1])[0][0];showRole(yn+el,sex.value);dnaText.innerHTML=`本命核心：${yn}${el}<br>表層五行偏向：${top}<br>角色氣質：${rd.temper}<br>髮型：${rd.hair}<br>視線氣質：${rd.eye}<br>服裝原型：${rd.dress}<br>星象：${rd.z}<br>角色種子：${rd.seed}`;
 },1350)});
 const GROW_KEY='destinyGrowth_v2';
 let stage=1;
