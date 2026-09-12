@@ -7,7 +7,8 @@
 <title>本命角色覺醒 Beta</title>
 <style>
 :root{--bg:#121119;--card:#201d2a;--line:#393344;--txt:#f5f1f7;--muted:#aaa2b3;--gold:#e6c879}
-*{box-sizing:border-box}body{margin:0;background:linear-gradient(#15131d,#0e0d13);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC",sans-serif}
+*{box-sizing:border-box}html,body{max-width:100%;overflow-x:hidden}body{margin:0;background:linear-gradient(#15131d,#0e0d13);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC",sans-serif}
+button,input,select{touch-action:manipulation}
 main{max-width:520px;margin:auto;padding:22px 16px 48px}.hero{text-align:center;padding:20px 4px 12px}.hero .sigil{font-size:42px}.hero h1{margin:7px 0;font-size:26px}.hero p{color:var(--muted);margin:0;line-height:1.6}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;margin-top:16px}.panel h2{font-size:18px;margin:0 0 14px}
 label{display:block;font-size:13px;color:var(--muted);margin:12px 0 6px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -18,7 +19,7 @@ button{border:0;background:var(--gold);color:#211c10;font-weight:800;margin-top:
 .rolecard{border:1px solid #6f6040;background:linear-gradient(145deg,#29242f,#17151d);border-radius:25px;padding:22px;text-align:center;position:relative;overflow:hidden}.rarity{font-size:12px;letter-spacing:3px;color:var(--gold)}.element{font-size:70px;margin:12px}.rolecard h2{font-size:26px;margin:4px}.subtitle{color:var(--gold);margin-bottom:16px}
 .chips{display:flex;gap:7px;justify-content:center;flex-wrap:wrap}.chip{background:#2d2934;border:1px solid #443d4c;border-radius:999px;padding:7px 10px;font-size:13px}
 .stats{margin-top:17px;text-align:left}.stat{display:grid;grid-template-columns:34px 1fr 42px;align-items:center;gap:8px;margin:8px 0}.bar{height:8px;background:#38333f;border-radius:9px;overflow:hidden}.fill{height:100%;background:var(--gold);border-radius:9px}
-.note{font-size:13px;color:var(--muted);line-height:1.6;margin-top:14px}.level{display:flex;justify-content:space-between;align-items:center}.xp{height:10px;background:#38333f;border-radius:10px;overflow:hidden;margin-top:9px}.xp i{display:block;height:100%;background:var(--gold);width:0}.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}.actions button{margin-top:10px}.small{font-size:12px;color:var(--muted);text-align:center;margin-top:16px}
+.note{font-size:13px;color:var(--muted);line-height:1.6;margin-top:14px}.level{display:flex;justify-content:space-between;align-items:center}.xp{height:10px;background:#38333f;border-radius:10px;overflow:hidden;margin-top:9px}.xp i{display:block;height:100%;background:var(--gold);width:0}.actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px}.actions>*{min-width:0}.actions button{margin-top:10px}.small{font-size:12px;color:var(--muted);text-align:center;margin-top:16px}
 </style>
 </head>
 <body><main>
@@ -35,7 +36,7 @@ button{border:0;background:var(--gold);color:#211c10;font-weight:800;margin-top:
 <label>出生地</label><input id="place" placeholder="例如：台中市">
 <button type="submit">開始覺醒</button><div class="note">🔒 此版本不預存任何人的生日、時辰、性別或出生地；GitHub 公開原始碼中也不包含玩家個資。</div>
 </form>
-<div class="note">Beta 版先驗證核心流程。日主採萬年曆日干支算法；完整八字節氣校正與紫微排盤將在後續版本加入。</div>
+<div class="note">Beta 版先驗證核心流程。此版已加入穩定的角色 DNA 種子；八字目前以日柱／日主作核心。月柱需要節氣交接、時柱也需依日干推算，因此完整四柱與五行比例會在完成節氣校正後才正式啟用，避免用簡化公式誤算。</div>
 </section>
 
 <section class="panel hidden reveal" id="reveal">
@@ -49,6 +50,10 @@ button{border:0;background:var(--gold);color:#211c10;font-weight:800;margin-top:
 <div class="chips"><span class="chip" id="sunChip">♑ 摩羯座</span><span class="chip" id="dayChip">庚戌日</span><span class="chip" id="timeChip">辰時</span></div>
 <div class="stats" id="stats"></div>
 <p class="note" id="desc"></p>
+<div class="panel" style="text-align:left;margin-top:16px">
+<h2 style="margin-bottom:10px">角色 DNA</h2>
+<div id="dna" class="note" style="margin-top:0"></div>
+</div>
 </div>
 <section class="panel">
 <div class="level"><strong id="level">Lv. 1</strong><span id="xpText">成長 0 / 100</span></div><div class="xp"><i id="xpbar"></i></div>
@@ -72,12 +77,29 @@ const info={
 function jdn(y,m,d){let a=Math.floor((14-m)/12), yy=y+4800-a, mm=m+12*a-3;return d+Math.floor((153*mm+2)/5)+365*yy+Math.floor(yy/4)-Math.floor(yy/100)+Math.floor(yy/400)-32045}
 function dayGanzhi(y,m,d){let n=(jdn(y,m,d)+49)%60;return {stem:stems[n%10],branch:branches[n%12],idx:n%10}}
 function zodiac(m,d){let z=[['摩羯座','♑',1,20],['水瓶座','♒',2,19],['雙魚座','♓',3,21],['牡羊座','♈',4,20],['金牛座','♉',5,21],['雙子座','♊',6,22],['巨蟹座','♋',7,23],['獅子座','♌',8,23],['處女座','♍',9,23],['天秤座','♎',10,24],['天蠍座','♏',11,23],['射手座','♐',12,22],['摩羯座','♑',13,1]];for(let i=0;i<12;i++){let end=z[i][2],ed=z[i][3];if(m<end||(m===end&&d<ed))return z[Math.max(0,i-1)].slice(0,2)}return ['摩羯座','♑']}
+
+function hashSeed(str){let h=2166136261>>>0;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function pick(arr,seed,shift){return arr[((seed>>>shift)%arr.length)]}
+function roleDNA(seed,el,stem,zodiacName){
+ const yin=stems.indexOf(stem)%2===1?'陰':'陽';
+ const palettes={木:['墨綠','青綠','松青'],火:['赤紅','暖金','朱紅'],土:['砂金','岩灰','茶褐'],金:['銀白','墨黑','冷灰'],水:['深藍','霧藍','玄青']};
+ const hairs=['長髮','及肩髮','俐落短髮','高束髮','半束長髮'];
+ const eyes=['清冷','沉靜','明亮','銳利','溫柔'];
+ const temper=['沉著','敏銳','溫和','果決','內斂','靈動'];
+ const motifs={木:'枝葉與生長紋',火:'火焰與光紋',土:'山岩與大地紋',金:'金屬與刃紋',水:'水波與流光紋'};
+ return {yin, palette:pick(palettes[el],seed,0), hair:pick(hairs,seed,4), eye:pick(eyes,seed,8), temper:pick(temper,seed,12), motif:motifs[el], zodiac:zodiacName, seed:seed.toString(16).toUpperCase().padStart(8,'0')};
+}
+
 function buildStats(el){let base={木:[88,66,62,75,71],火:[69,91,72,61,78],土:[64,63,91,79,70],金:[68,76,80,92,67],水:[73,68,65,74,92]}[el];let names=['木','火','土','金','水'];return names.map((n,i)=>`<div class="stat"><span>${n}</span><div class="bar"><div class="fill" style="width:${base[i]}%"></div></div><span>${base[i]}</span></div>`).join('')}
 let xp=0;
 document.querySelector('#birthForm').addEventListener('submit',e=>{e.preventDefault();let v=document.querySelector('#birth').value;if(!v)return;let [y,m,d]=v.split('-').map(Number);let gz=dayGanzhi(y,m,d), el=stemEl[gz.idx], z=zodiac(m,d), hr=document.querySelector('#hour').value;
 document.querySelector('#formPanel').classList.add('hidden');document.querySelector('#reveal').classList.remove('hidden');
 setTimeout(()=>{document.querySelector('#revealText').textContent=`本命五行：${el}`;document.querySelector('#orb').textContent=info[el].icon},650);
-setTimeout(()=>{document.querySelector('#reveal').classList.add('hidden');document.querySelector('#result').classList.remove('hidden');document.querySelector('#elementIcon').textContent=info[el].icon;document.querySelector('#roleName').textContent=`${gz.stem}${el}・本命化身`;document.querySelector('#roleTitle').textContent=info[el].title;document.querySelector('#sunChip').textContent=`${z[1]} ${z[0]}`;document.querySelector('#dayChip').textContent=`${gz.stem}${gz.branch}日`;document.querySelector('#timeChip').textContent=hr;document.querySelector('#stats').innerHTML=buildStats(el);document.querySelector('#desc').textContent=info[el].desc},1500);
+setTimeout(()=>{document.querySelector('#reveal').classList.add('hidden');document.querySelector('#result').classList.remove('hidden');document.querySelector('#elementIcon').textContent=info[el].icon;document.querySelector('#roleName').textContent=`${gz.stem}${el}・本命化身`;document.querySelector('#roleTitle').textContent=info[el].title;document.querySelector('#sunChip').textContent=`${z[1]} ${z[0]}`;document.querySelector('#dayChip').textContent=`${gz.stem}${gz.branch}日`;document.querySelector('#timeChip').textContent=hr;document.querySelector('#stats').innerHTML=buildStats(el);document.querySelector('#desc').textContent=info[el].desc;
+let seed=hashSeed([v,hr,document.querySelector('#sex').value,document.querySelector('#place').value.trim()].join('|'));
+let dna=roleDNA(seed,el,gz.stem,z[0]);
+document.querySelector('#dna').innerHTML=`<strong>${dna.yin}${el}</strong> · ${dna.temper}型<br>髮型：${dna.hair}　視線氣質：${dna.eye}<br>主色意象：${dna.palette}　命紋：${dna.motif}<br>星象：${dna.zodiac}<br><span style="opacity:.75">角色種子：${dna.seed}</span>`;
+},1500);
 });
 function grow(n){xp+=n;let lv=Math.floor(xp/100)+1, rem=xp%100;document.querySelector('#level').textContent=`Lv. ${lv}`;document.querySelector('#xpText').textContent=`成長 ${rem} / 100`;document.querySelector('#xpbar').style.width=rem+'%';if(lv>=3)document.querySelector('#growthNote').textContent='✦ 已達覺醒門檻：未來版本可解鎖動態角色階段。'}
 document.querySelector('#train').addEventListener('click',()=>grow(10));document.querySelector('#bond').addEventListener('click',()=>grow(5));document.querySelector('#reset').addEventListener('click',()=>{xp=0;document.querySelector('#result').classList.add('hidden');document.querySelector('#formPanel').classList.remove('hidden');grow(0)});
