@@ -36,7 +36,7 @@ button{border:0;background:var(--gold);color:#211c10;font-weight:800;margin-top:
 <label>出生地</label><input id="place" placeholder="例如：台中市" required>
 <button>開始本命覺醒</button>
 </form>
-<p class="privacy">🔒 公開版不含任何玩家個資。輸入資料只在目前瀏覽器中即時計算，本版不會上傳或寫入 GitHub。</p>
+<p class="privacy">🔒 公開版不含任何玩家個資。你的出生資料會記住在這支手機的瀏覽器中，方便下次自動帶入；不會寫進 GitHub，也不會上傳到伺服器。</p>
 </section>
 
 <section class="panel hidden reveal" id="reveal"><div class="orb" id="orb">✦</div><h2 id="revealTxt">正在推演四柱…</h2><p class="note">正在形成你的本命角色 DNA</p></section>
@@ -50,7 +50,7 @@ button{border:0;background:var(--gold);color:#211c10;font-weight:800;margin-top:
 <div class="pillar"><small>年柱</small><strong id="yp"></strong></div><div class="pillar"><small>月柱</small><strong id="mp"></strong></div><div class="pillar"><small>日柱</small><strong id="dp"></strong></div><div class="pillar"><small>時柱</small><strong id="hp"></strong></div>
 </div>
 <div class="five" id="five"></div>
-<div class="dna" id="dna"></div>
+<div class="dna" id="dna"><b>角色詳細資料</b><br><span id="dnaText">完成覺醒後顯示</span></div>
 <p class="note warn">目前五行比例採「四柱八字表層八字」統計，用於角色生成測試；尚未加入藏干、旺衰、喜用神，因此不把它宣稱為完整命理強弱判定。</p>
 </div>
 <section class="panel">
@@ -83,11 +83,23 @@ function dna(h,el,z){let hair=['長髮','及肩髮','俐落短髮','高束髮','
 function counts(ps){let c={木:0,火:0,土:0,金:0,水:0};ps.forEach(p=>{c[SE[p.si]]++;c[BE[p.bi]]++});return c}
 function seasonName(m,d){let i=monthIndex(m,d);return ['寒土','初春','仲春','暮春','初夏','仲夏','暮夏','初秋','仲秋','暮秋','初冬','仲冬'][i]}
 let xp=0;
-document.querySelector('#f').addEventListener('submit',e=>{e.preventDefault();let v=birth.value,hr=hour.value;if(!v||!hr||!sex.value||!place.value.trim())return;let [y,m,d]=v.split('-').map(Number),Y=yearP(y,m,d),D=dayP(y,m,d),M=monthP(y,m,d,Y.si),H=hourP(D.si,hr),ps=[Y,M,D,H],c=counts(ps),el=SE[D.si],yn=D.si%2?'陰':'陽',z=zodiac(m,d),h=hash([v,hr,sex.value,place.value.trim()].join('|')),rd=dna(h,el,z[0]);
+const PROFILE_KEY='destinyCharacterProfile_v1';
+function loadProfile(){
+ try{
+  const a=JSON.parse(localStorage.getItem(PROFILE_KEY)||'null');
+  if(!a)return;
+  birth.value=a.birth||''; hour.value=a.hour||''; sex.value=a.sex||''; place.value=a.place||'';
+ }catch(e){}
+}
+function saveProfile(){
+ try{localStorage.setItem(PROFILE_KEY,JSON.stringify({birth:birth.value,hour:hour.value,sex:sex.value,place:place.value.trim()}))}catch(e){}
+}
+loadProfile();
+document.querySelector('#f').addEventListener('submit',e=>{e.preventDefault();let v=birth.value,hr=hour.value;if(!v||!hr||!sex.value||!place.value.trim())return;saveProfile();let [y,m,d]=v.split('-').map(Number),Y=yearP(y,m,d),D=dayP(y,m,d),M=monthP(y,m,d,Y.si),H=hourP(D.si,hr),ps=[Y,M,D,H],c=counts(ps),el=SE[D.si],yn=D.si%2?'陰':'陽',z=zodiac(m,d),h=hash([v,hr,sex.value,place.value.trim()].join('|')),rd=dna(h,el,z[0]);
 formPanel.classList.add('hidden');reveal.classList.remove('hidden');setTimeout(()=>{orb.textContent=I[el][0];revealTxt.textContent=`本命 ${yn}${el} · 四柱形成`},550);
 setTimeout(()=>{reveal.classList.add('hidden');result.classList.remove('hidden');icon.textContent=I[el][0];name.textContent=`${S[D.si]}${el}・本命化身`;title.textContent=I[el][1];zodiac.textContent=`${z[1]} ${z[0]}`;yin.textContent=`${yn}${el}`;season.textContent=seasonName(m,d);yp.textContent=Y.text;mp.textContent=M.text;dp.textContent=D.text;hp.textContent=H.text;
 let total=8;five.innerHTML=['木','火','土','金','水'].map(k=>{let pct=Math.round(c[k]/total*100);return `<div class="stat"><span>${k}</span><div class="bar"><div class="fill" style="width:${pct}%"></div></div><span>${pct}%</span></div>`}).join('');
-let top=Object.entries(c).sort((a,b)=>b[1]-a[1])[0][0];dna.innerHTML=`<b>角色 DNA</b><br>本命核心：${yn}${el}　表層五行偏向：${top}<br>角色氣質：${rd.temper}　髮型：${rd.hair}<br>視線：${rd.eye}　服裝原型：${rd.dress}<br>星象：${rd.z}<br>角色種子：${rd.seed}`;
+let top=Object.entries(c).sort((a,b)=>b[1]-a[1])[0][0];dnaText.innerHTML=`本命核心：${yn}${el}<br>表層五行偏向：${top}<br>角色氣質：${rd.temper}<br>髮型：${rd.hair}<br>視線氣質：${rd.eye}<br>服裝原型：${rd.dress}<br>星象：${rd.z}<br>角色種子：${rd.seed}`;
 },1350)});
 function grow(n){xp+=n;let l=Math.floor(xp/100)+1,r=xp%100;lv.textContent='Lv. '+l;xpt.textContent=`成長 ${r} / 100`;xpb.style.width=r+'%';if(l>=3)growNote.textContent='✦ 已達動態覺醒門檻：後續版本可銜接 2D 動態／3D 化身。'}
 train.addEventListener('click',()=>grow(10));bond.addEventListener('click',()=>grow(5));reset.addEventListener('click',()=>{xp=0;result.classList.add('hidden');formPanel.classList.remove('hidden');grow(0)});
