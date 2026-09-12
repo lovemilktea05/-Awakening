@@ -53,10 +53,25 @@ button{border:0;background:var(--gold);color:#211c10;font-weight:800;margin-top:
 <div class="dna" id="dna"><b>角色詳細資料</b><br><span id="dnaText">完成覺醒後顯示</span></div>
 <p class="note warn">目前五行比例採「四柱八字表層八字」統計，用於角色生成測試；尚未加入藏干、旺衰、喜用神，因此不把它宣稱為完整命理強弱判定。</p>
 </div>
-<section class="panel">
-<div class="level"><strong id="lv">Lv. 1</strong><span id="xpt">成長 0 / 100</span></div><div class="xp"><i id="xpb"></i></div>
-<div class="actions"><button type="button" id="train">修煉 +10</button><button type="button" id="bond">互動 +5</button></div>
-<p class="note" id="growNote">角色 DNA 已固定。未來接 AI 人物時，同一角色種子可作為外觀一致性的基礎。</p>
+<section class="panel" id="growthPanel">
+<div class="level"><strong id="stageTitle">階段 1・本命誕生</strong><span id="stageCount">1 / 3</span></div>
+<div class="xp"><i id="xpb" style="width:33%"></i></div>
+<div id="stageBody">
+<p class="note">你的本命卡已形成。完成兩個很短的首次互動，今天就能抵達「初次覺醒」。</p>
+<button type="button" id="firstAction">開始靈魂感應</button>
+</div>
+<div id="choiceBox" class="hidden">
+<p style="font-weight:800;margin:12px 0 4px">此刻你比較想做什麼？</p>
+<div class="actions">
+<button type="button" class="choice" data-v="靜">安靜待著</button>
+<button type="button" class="choice" data-v="行">做點事情</button>
+</div>
+<button type="button" class="secondary choice" data-v="休">放鬆一下</button>
+</div>
+<div id="awakenBox" class="hidden">
+<div class="dna"><b>✦ 初次覺醒完成</b><br><span id="awakenText">你的角色已準備好進入人物顯形階段。</span></div>
+<p class="note">下一階段接入 AI 人物生成後，這裡會直接解鎖你的完整 2D 本命人物，而不是繼續空按升級。</p>
+</div>
 <button class="secondary" type="button" id="reset">重新測試</button>
 </section>
 </section>
@@ -115,7 +130,23 @@ setTimeout(()=>{reveal.classList.add('hidden');result.classList.remove('hidden')
 let total=8;five.innerHTML=['木','火','土','金','水'].map(k=>{let pct=Math.round(c[k]/total*100);return `<div class="stat"><span>${k}</span><div class="bar"><div class="fill" style="width:${pct}%"></div></div><span>${pct}%</span></div>`}).join('');
 let top=Object.entries(c).sort((a,b)=>b[1]-a[1])[0][0];dnaText.innerHTML=`本命核心：${yn}${el}<br>表層五行偏向：${top}<br>角色氣質：${rd.temper}<br>髮型：${rd.hair}<br>視線氣質：${rd.eye}<br>服裝原型：${rd.dress}<br>星象：${rd.z}<br>角色種子：${rd.seed}`;
 },1350)});
-function grow(n){xp+=n;let l=Math.floor(xp/100)+1,r=xp%100;lv.textContent='Lv. '+l;xpt.textContent=`成長 ${r} / 100`;xpb.style.width=r+'%';if(l>=3)growNote.textContent='✦ 已達動態覺醒門檻：後續版本可銜接 2D 動態／3D 化身。'}
-train.addEventListener('click',()=>grow(10));bond.addEventListener('click',()=>grow(5));reset.addEventListener('click',()=>{xp=0;result.classList.add('hidden');formPanel.classList.remove('hidden');grow(0)});
+const GROW_KEY='destinyGrowth_v2';
+let stage=1;
+function saveGrowth(){try{localStorage.setItem(GROW_KEY,JSON.stringify({stage}))}catch(e){}}
+function renderStage(){
+ stageTitle.textContent=stage===1?'階段 1・本命誕生':stage===2?'階段 2・靈魂顯形':'階段 3・初次覺醒';
+ stageCount.textContent=stage+' / 3'; xpb.style.width=(stage*33.34)+'%';
+ stageBody.classList.toggle('hidden',stage!==1);
+ choiceBox.classList.toggle('hidden',stage!==2);
+ awakenBox.classList.toggle('hidden',stage!==3);
+}
+try{let g=JSON.parse(localStorage.getItem(GROW_KEY)||'null');if(g&&g.stage)stage=Math.max(1,Math.min(3,g.stage))}catch(e){}
+renderStage();
+firstAction.addEventListener('click',()=>{stage=2;saveGrowth();renderStage()});
+document.querySelectorAll('.choice').forEach(b=>b.addEventListener('click',()=>{
+ const msg={靜:'你的角色感應到安靜而穩定的氣息。',行:'你的角色感應到向前行動的意志。',休:'你的角色感應到需要恢復與沉澱的節奏。'}[b.dataset.v];
+ stage=3;saveGrowth();renderStage();awakenText.textContent=msg+' 初次覺醒已完成。';
+}));
+reset.addEventListener('click',()=>{stage=1;saveGrowth();result.classList.add('hidden');formPanel.classList.remove('hidden');renderStage()});
 })();
 </script></body></html>
